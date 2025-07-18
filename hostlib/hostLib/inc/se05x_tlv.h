@@ -14,9 +14,11 @@
 #include "nxLog.h"
 #include "nxScp03_Types.h"
 //#include <smCom.h>
-
+#include <limits.h>
 #if SSS_HAVE_SCP_SCP03_SSS
-#if (defined(USE_RTOS) && (USE_RTOS == 1))
+
+#if (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#include "FreeRTOS.h"
 #include "semphr.h"
 #elif (__GNUC__ && !AX_EMBEDDED)
 #include <errno.h>
@@ -214,7 +216,7 @@ typedef struct Se05xSession
 
 /*
 #if SSS_HAVE_SCP_SCP03_SSS
-#if (defined(USE_RTOS) && (USE_RTOS == 1))
+#if (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
     SemaphoreHandle_t scp03_lock;
     uint8_t scp03_lock_init;
 #elif (__GNUC__ && !AX_EMBEDDED)

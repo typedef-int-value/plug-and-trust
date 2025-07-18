@@ -78,7 +78,7 @@ static const char **gex_sss_argv;
 uint8_t __attribute__((section(".bss.$SRAM1"))) ucHeap[configTOTAL_HEAP_SIZE];
 #endif
 
-int main(int argc, const char *argv[])
+int ex_sss_main(int argc, const char *argv[])
 {
     int ret;
     sss_status_t status = kStatus_SSS_Fail;

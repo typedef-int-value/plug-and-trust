@@ -1,7 +1,18 @@
 /*
- * Copyright 2010-2014,2018-2020,2023-2024 NXP
+ * Copyright (c) 2020, Michael Grand
+ * Copyright 2010-2014,2018-2019 NXP
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /*
@@ -10,31 +21,14 @@
  * Project: Trusted ESE Linux
  *
  */
-#include <stdlib.h>
-#include <errno.h>
-#include <phNxpEsePal_i2c.h>
-#include <phEseStatus.h>
-#include <string.h>
+
+#include "phNxpEsePal_i2c.h"
+#include "phEseStatus.h"
+#include "log.h"
+#include <time.h>
 #include "i2c_a7.h"
 
-#ifdef FLOW_VERBOSE
-#define NX_LOG_ENABLE_SMCOM_DEBUG 1
-#endif
-
-#include "nxLog_smCom.h"
-#include "sm_timer.h"
-
-#include "se05x_apis.h"
-#if defined(Android) || defined(LINUX)
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <linux/i2c-dev.h>
-#include <unistd.h>
-#endif
-
-#include <time.h>
-
-#define MAX_RETRY_CNT 10
+#define MAX_RETRY_CNT   10
 
 /*******************************************************************************
 **
@@ -49,13 +43,14 @@
 *******************************************************************************/
 void phPalEse_i2c_close(void *pDevHandle)
 {
-#ifdef Android
-    if (NULL != pDevHandle) {
-        close((intptr_t)pDevHandle);
+    if (NULL != pDevHandle)
+    {
+    	/*
+    	 * Free I2C object instead of writing NULL in pDevHandle
+    	 * as in the NXP's original source code.
+    	 */
+    	axI2CClose();
     }
-#endif
-    axI2CTerm(pDevHandle, 0);
-    pDevHandle = NULL;
 
     return;
 }
@@ -75,32 +70,31 @@ void phPalEse_i2c_close(void *pDevHandle)
 *******************************************************************************/
 ESESTATUS phPalEse_i2c_open_and_configure(pphPalEse_Config_t pConfig)
 {
-    void *conn_ctx = NULL;
+    int nHandle;
     int retryCnt = 0;
-    unsigned int i2c_ret = 0;
 
-    LOG_D("%s Opening port", __FUNCTION__);
+    LOG_D("%s Opening port",__FUNCTION__);
     /* open port */
     /*Disable as interface reset happens on every session open*/
     //se05x_ic_reset();
 retry:
-    i2c_ret = axI2CInit(&conn_ctx, (const char *)pConfig->pDevName);
-    if (i2c_ret != I2C_OK) {
-        LOG_E("%s Failed retry ", __FUNCTION__);
-        if (i2c_ret == I2C_BUSY) {
+    nHandle=axI2CInit(0, 0);
+    if (nHandle != I2C_OK){
+        LOG_E("%s Failed retry ",__FUNCTION__);
+        if (nHandle == I2C_BUSY ) {
             retryCnt++;
             LOG_E("Retry open eSE driver, retry cnt : %d ", retryCnt);
             if (retryCnt < MAX_RETRY_CNT) {
-                sm_sleep(ESE_POLL_DELAY_MS);
+                wait_ms(ESE_POLL_DELAY_MS);
                 goto retry;
             }
         }
-        LOG_E("I2C init Failed: retval %x ", i2c_ret);
+        LOG_E("I2C init Failed: retval %x ",nHandle);
         pConfig->pDevHandle = NULL;
         return ESESTATUS_INVALID_DEVICE;
     }
-    LOG_D("I2C driver Initialized :: fd = [%d] ", i2c_ret);
-    pConfig->pDevHandle = conn_ctx;
+    LOG_D("I2C driver Initialized :: fd = [%d] ", nHandle);
+    pConfig->pDevHandle = (void*) ((intptr_t) nHandle);
     return ESESTATUS_SUCCESS;
 }
 
@@ -118,39 +112,35 @@ retry:
 **                  -1        - read operation failure
 **
 *******************************************************************************/
-int phPalEse_i2c_read(void *pDevHandle, uint8_t *pBuffer, int nNbBytesToRead)
+int phPalEse_i2c_read(void *pDevHandle, uint8_t * pBuffer, int nNbBytesToRead)
 {
-    unsigned int ret = 0;
-    int retryCount = 0;
+    int ret = -1 , retryCount = 0;;
     int numRead = 0;
     LOG_D("%s Read Requested %d bytes ", __FUNCTION__, nNbBytesToRead);
-    //sm_sleep(ESE_POLL_DELAY_MS);
-    while (numRead != nNbBytesToRead) {
-        ret = axI2CRead(pDevHandle, I2C_BUS_0, SMCOM_I2C_ADDRESS, pBuffer, nNbBytesToRead);
-        if (ret != I2C_OK) {
-            LOG_D("_i2c_read() error : %d ", ret);
-            /* if platform returns different error codes, modify the check below.*/
-            /* Also adjust the retry count based on the platform */
-#ifdef T1OI2C_RETRY_ON_I2C_FAILED
-            if (((ret == I2C_FAILED) || (ret == I2C_NACK_ON_ADDRESS)) && (retryCount < MAX_RETRY_COUNT)) {
-#else
-            if ((ret == I2C_NACK_ON_ADDRESS) && (retryCount < MAX_RETRY_COUNT)) {
-#endif
+    //wait_ms(ESE_POLL_DELAY_MS);
+    while(numRead != nNbBytesToRead)
+    {
+        ret=axI2CRead(0, I2C_BUS_0, SMCOM_I2C_ADDRESS, pBuffer, nNbBytesToRead );
+        if(ret != I2C_OK)
+        {
+            LOG_D("_i2c_read() error : %d ",ret);
+            if ((ret == I2C_NACK_ON_ADDRESS) && (retryCount < MAX_RETRY_COUNT))
+            {
                 retryCount++;
                 /* 1ms delay to give ESE polling delay */
                 /*i2c driver back off delay is providing 1ms wait time so ignoring waiting time at this level*/
-#ifdef T1OI2C_RETRY_ON_I2C_FAILED /* Add delay only for linux (T1OI2C_RETRY_ON_I2C_FAILED is enabled only on SSS_HAVE_HOST_LINUX_LIKE) */
-                sm_sleep(ESE_POLL_DELAY_MS);
-#endif
+                //wait_ms(ESE_POLL_DELAY_MS);
                 LOG_D("_i2c_read() failed. Going to retry, counter:%d  !", retryCount);
                 continue;
             }
             return -1;
         }
-        else {
+        else
+        {
             numRead = nNbBytesToRead;
             break;
         }
+        LOG_D("Read Returned = %d ", ret);
     }
     return numRead;
 }
@@ -169,32 +159,40 @@ int phPalEse_i2c_read(void *pDevHandle, uint8_t *pBuffer, int nNbBytesToRead)
 **                  -1         - write operation failure
 **
 *******************************************************************************/
-int phPalEse_i2c_write(void *pDevHandle, uint8_t *pBuffer, int nNbBytesToWrite)
+int phPalEse_i2c_write(void *pDevHandle, uint8_t * pBuffer, int nNbBytesToWrite)
 {
-    unsigned int ret = I2C_OK, retryCount = 0;
+    int ret = I2C_OK, retryCount = 0;
     int numWrote = 0;
+    if (NULL == pDevHandle)
+    {
+        return -1;
+    }
     pBuffer[0] = 0x5A; //Recovery if stack forgot to add NAD byte.
-    do {
+    do
+    {
         /* 1ms delay to give ESE polling delay */
-        sm_sleep(ESE_POLL_DELAY_MS);
-        ret = axI2CWrite(pDevHandle, I2C_BUS_0, SMCOM_I2C_ADDRESS, pBuffer, nNbBytesToWrite);
-        if (ret != I2C_OK) {
-            LOG_D("_i2c_write() error : %d ", ret);
-            if ((ret == I2C_NACK_ON_ADDRESS) && (retryCount < MAX_RETRY_COUNT)) {
+        wait_ms(ESE_POLL_DELAY_MS);
+        ret =axI2CWrite(0, I2C_BUS_0, SMCOM_I2C_ADDRESS, pBuffer , nNbBytesToWrite );
+        if (ret != I2C_OK )
+        {
+            LOG_D("_i2c_write() error : %d ",ret);
+            if ((ret == I2C_NACK_ON_ADDRESS)&& (retryCount < MAX_RETRY_COUNT))
+            {
                 retryCount++;
                 /* 1ms delay to give ESE polling delay */
                 /*i2c driver back off delay is providing 1ms wait time so ignoring waiting time at this level*/
-                //sm_sleep(ESE_POLL_DELAY_MS);
+                //wait_ms(ESE_POLL_DELAY_MS);
                 LOG_D("_i2c_write() failed. Going to retry, counter:%d  !", retryCount);
                 continue;
             }
             return -1;
         }
-        else {
-            numWrote = nNbBytesToWrite;
-            //sm_sleep(ESE_POLL_DELAY_MS);
+        else
+        {
+            numWrote= nNbBytesToWrite;
+            //wait_ms(ESE_POLL_DELAY_MS);
             break;
         }
-    } while (ret != I2C_OK);
+    }while (ret != I2C_OK);
     return numWrote;
 }

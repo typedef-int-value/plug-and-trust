@@ -113,7 +113,7 @@
  */
 
 /** Use mbedTLS as host crypto */
-#define SSS_HAVE_HOSTCRYPTO_MBEDTLS 1
+#define SSS_HAVE_HOSTCRYPTO_MBEDTLS 0
 
 /** Use OpenSSL as host crypto */
 #define SSS_HAVE_HOSTCRYPTO_OPENSSL 0
@@ -125,7 +125,7 @@
  * This then becomes integration without mbedTLS/OpenSSL for SCP03 / AESKey.
  *
  * .. note:: ECKey abstraction is not implemented/available yet. */
-#define SSS_HAVE_HOSTCRYPTO_USER 0
+#define SSS_HAVE_HOSTCRYPTO_USER 1
 
 /** NO Host Crypto
  * Note, this is unsecure and only provided for experimentation

@@ -423,7 +423,7 @@ U16 SM_I2CConnect(void **conn_ctx, SmCommState_t *commState, U8 *atr, U16 *atrLe
         status = SM_Connect(NULL, commState, atr, atrLen);
         if (status != SW_OK) {
 #if defined(T1oI2C)
-            phNxpEse_close(NULL);
+            phNxpEse_close();
 #endif //#if defined(T1oI2C)
         }
         return status;
@@ -432,7 +432,7 @@ U16 SM_I2CConnect(void **conn_ctx, SmCommState_t *commState, U8 *atr, U16 *atrLe
         status = SM_Connect(*conn_ctx, commState, atr, atrLen);
         if (status != SW_OK && *conn_ctx != NULL) {
 #if defined(T1oI2C)
-            phNxpEse_close(*conn_ctx);
+            phNxpEse_close();
 #endif //#if defined(T1oI2C)
             *conn_ctx = NULL;
         }
