@@ -30,7 +30,7 @@
 #elif SSS_HAVE_HOSTCRYPTO_USER
 #include <fsl_sss_user_apis.h>
 #else
-// #error "No hostcrypto"
+#error "No hostcrypto"
 #endif // SSS_HAVE_HOSTCRYPTO_MBEDTLS
 
 #if SSS_HAVE_SE05X_VER_GTE_07_02

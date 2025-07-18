@@ -15,6 +15,7 @@
 
 /* Default configuration file */
 #include <nxLog_DefaultConfig.h>
+
 /* clang-format off */
 
 /* Check if we are double defining these macros */
@@ -67,17 +68,6 @@
         nLog_au8("smCom", NX_LEVEL_DEBUG, MESSAGE, ARRAY, LEN)
 #else
 #   define LOG_DEBUG_ENABLED 0
-#ifdef DEBUG
-#   define LOG_D(...)         Com_Printf(__VA_ARGS__)
-#   define LOG_X8_D(VALUE)
-#   define LOG_U8_D(VALUE)
-#   define LOG_X16_D(VALUE)
-#   define LOG_U16_D(VALUE)
-#   define LOG_X32_D(VALUE)
-#   define LOG_U32_D(VALUE)
-#   define LOG_AU8_D(ARRAY, LEN)  Com_PrintfHex(ARRAY, LEN)
-#   define LOG_MAU8_D(MESSAGE, ARRAY, LEN)
-#else
 #   define LOG_D(...)
 #   define LOG_X8_D(VALUE)
 #   define LOG_U8_D(VALUE)
@@ -87,7 +77,6 @@
 #   define LOG_U32_D(VALUE)
 #   define LOG_AU8_D(ARRAY, LEN)
 #   define LOG_MAU8_D(MESSAGE, ARRAY, LEN)
-#endif
 #endif
 
 #if NX_LOG_ENABLE_SMCOM_INFO

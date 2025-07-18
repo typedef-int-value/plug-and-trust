@@ -49,14 +49,14 @@ U16 smComT1oI2C_Close(void *conn_ctx, U8 mode)
     (void)mode;
 
     if (conn_ctx) {
-        status=phNxpEse_EndOfApdu();
+        status=phNxpEse_EndOfApdu(conn_ctx);
         //status=phNxpEse_chipReset();
         if(status != ESESTATUS_SUCCESS)
         {
             LOG_E("Failed to close session ");
         }
 
-        status2 = phNxpEse_close();
+        status2 = phNxpEse_close(conn_ctx);
         if(status2 != ESESTATUS_SUCCESS){
             LOG_E("Failed to close ESE interface and free all resources ");
         }
@@ -85,7 +85,7 @@ U16 smComT1oI2C_Init(void **conn_ctx, const char *pConnString)
     if(conn_ctx != NULL) {
         *conn_ctx = NULL;
     }
-    ret = phNxpEse_open(initParams);
+    ret = phNxpEse_open(conn_ctx, initParams, pConnString);
     if (ret != ESESTATUS_SUCCESS)
     {
         LOG_E(" Failed to create physical connection with ESE ");
@@ -103,7 +103,7 @@ U16 smComT1oI2C_Resume(void **conn_ctx, const char *pConnString)
     if(conn_ctx != NULL) {
         *conn_ctx = NULL;
     }
-    ret = phNxpEse_open(initParams);
+    ret = phNxpEse_open(conn_ctx, initParams, pConnString);
     if (ret != ESESTATUS_SUCCESS)
     {
         LOG_E(" Failed to create physical connection with ESE ");
@@ -129,7 +129,7 @@ U16 smComT1oI2C_Open(void *conn_ctx, U8 mode, U8 seqCnt, U8 *T1oI2Catr, U16 *T1o
         smComT1oI2C_Init(NULL, NULL);
     }
 
-    ret=phNxpEse_init(initParams, &AtrRsp);
+    ret=phNxpEse_init(conn_ctx, initParams, &AtrRsp);
     if (ret != ESESTATUS_SUCCESS)
     {
         *T1oI2CatrLen=0;
@@ -169,7 +169,7 @@ static U32 smComT1oI2C_TransceiveRaw(void* conn_ctx, U8 * pTx, U16 txLen, U8 * p
     pRspTrans.p_data = pRx;
 
     LOG_MAU8_D("APDU Tx>", pTx, txLen);
-    txnStatus = phNxpEse_Transceive(&pCmdTrans, &pRspTrans);
+    txnStatus = phNxpEse_Transceive(conn_ctx, &pCmdTrans, &pRspTrans);
     if ( txnStatus == ESESTATUS_SUCCESS )
     {
         *pRxLen = pRspTrans.len;
@@ -224,7 +224,7 @@ exit:
 U16 smComT1oI2C_ComReset(void* conn_ctx)
 {
     ESESTATUS status = ESESTATUS_SUCCESS;
-    status = phNxpEse_deInit();
+    status = phNxpEse_deInit(conn_ctx);
     if(status !=ESESTATUS_SUCCESS)
     {
         LOG_E("Failed to Reset 7816 protocol instance ");

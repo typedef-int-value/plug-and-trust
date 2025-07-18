@@ -25,8 +25,6 @@ uint32_t sm_initSleep(void);
 void sm_sleep(uint32_t msec);
 void sm_usleep(uint32_t microsec);
 
-void wait_ms(uint32_t msec);
-
 #ifdef __cplusplus
 }
 #endif

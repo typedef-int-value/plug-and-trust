@@ -19,7 +19,8 @@
 #endif
 #include <time.h>
 #include "sm_timer.h"
-#if defined(PTMW_USE_RTOS) && PTMW_USE_RTOS == 1
+
+#if defined(USE_RTOS) && USE_RTOS == 1
 #include "FreeRTOS.h"
 #include "task.h"
 #endif
@@ -33,12 +34,12 @@ uint32_t sm_initSleep()
 }
 // LCOV_EXCL_STOP
 
-#if defined(PTMW_USE_RTOS) && PTMW_USE_RTOS == 1
+#if defined(USE_RTOS) && USE_RTOS == 1
 #ifndef MSEC_TO_TICK
 #define MSEC_TO_TICK(msec) \
 	((((uint32_t)configTICK_RATE_HZ * (uint32_t)(msec))) / 1000L)
 #endif /* MSEC_TO_TICK */
-#endif /* PTMW_USE_RTOS */
+#endif /* USE_RTOS */
 
 /**
  * Implement a blocking (for the calling thread) wait for a number of milliseconds.
@@ -51,7 +52,7 @@ void sm_sleep(uint32_t msec)
 #elif defined(__gnu_linux__) || defined __clang__
     useconds_t microsec = msec*1000;
     usleep(microsec);
-#elif defined(PTMW_USE_RTOS) && PTMW_USE_RTOS == 1
+#elif defined(USE_RTOS) && USE_RTOS == 1
     vTaskDelay(1 >= pdMS_TO_TICKS(msec) ? 1 : pdMS_TO_TICKS(msec));
 #else
     clock_t goal = msec + clock();
@@ -75,12 +76,4 @@ void sm_usleep(uint32_t microsec)
 #else
 	//#warning "No sm_usleep implemented"
 #endif
-}
-void wait_ms(uint32_t msec)
-{
-  sm_sleep(msec);
-}
-void thread_sleep_for(ms)
-{
-  sm_sleep(ms);
 }

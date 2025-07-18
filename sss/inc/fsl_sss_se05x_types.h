@@ -30,7 +30,7 @@
 /* Only for base session with os */
 #endif
 /* FreeRTOS includes. */
-#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#if defined(USE_RTOS) && (USE_RTOS == 1)
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
@@ -103,7 +103,7 @@ typedef struct _sss_se05x_tunnel_context
 /** For systems where we potentially have multi-threaded operations, have a lock */
 #if defined(USE_THREADX_RTOS)
     TX_MUTEX channelLock;
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
     SemaphoreHandle_t channelLock;
 #elif (__GNUC__ && !AX_EMBEDDED)
     pthread_mutex_t channelLock;

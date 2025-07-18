@@ -17,7 +17,7 @@
 #if defined(USE_THREADX_RTOS)
 #include "tx_api.h"
 
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
 #include "FreeRTOS.h"
 #include "semphr.h"
 #endif
@@ -29,7 +29,7 @@
 #if defined(USE_THREADX_RTOS)
 static TX_MUTEX  gSmComlock;
 
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
 static SemaphoreHandle_t gSmComlock;
 #elif (__GNUC__ && !AX_EMBEDDED)
 #include<pthread.h>
@@ -37,7 +37,7 @@ static SemaphoreHandle_t gSmComlock;
     static pthread_mutex_t gSmComlock;
 #endif
 
-#if (__GNUC__ && !AX_EMBEDDED) || (PTMW_USE_RTOS) || defined(USE_THREADX_RTOS)
+#if (__GNUC__ && !AX_EMBEDDED) || (USE_RTOS) || defined(USE_THREADX_RTOS)
 #define USE_LOCK 1
 #else
 #define USE_LOCK 0
@@ -59,7 +59,7 @@ static SemaphoreHandle_t gSmComlock;
     else                                                         \
         LOG_D("LOCK Releasing failed");
 
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
 #define LOCK_TXN()                                             \
     LOG_D("Trying to Acquire Lock");                           \
     if (xSemaphoreTake(gSmComlock, portMAX_DELAY) == pdTRUE) { \
@@ -111,7 +111,7 @@ U16 smCom_Init(ApduTransceiveFunction_t pTransceive, ApduTransceiveRawFunction_t
         LOG_E("\n tx_mutex_create failed");
         return ret;
     }
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
     gSmComlock = xSemaphoreCreateMutex();
     if (gSmComlock == NULL) {
         LOG_E("\n xSemaphoreCreateMutex failed");
@@ -135,7 +135,7 @@ void smCom_DeInit(void)
 #if defined(USE_THREADX_RTOS)
     tx_mutex_delete(&gSmComlock);
 
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
     if (gSmComlock != NULL) {
     	vSemaphoreDelete(gSmComlock);
         gSmComlock = NULL;

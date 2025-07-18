@@ -46,7 +46,8 @@
 #define SNPRINTF snprintf
 #define STRNICMP strncasecmp
 #endif /*_MSC_VER*/
-#if defined(PTMW_USE_RTOS) && PTMW_USE_RTOS == 1
+
+#if defined(USE_RTOS) && USE_RTOS == 1
 // #include "FreeRTOS.h"
 extern void vPortFree(void *pv);
 extern void *pvPortMalloc(size_t xWantedSize);
@@ -65,7 +66,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for Heap3/Heap4.*/
 #define SSS_CALLOC pvPortCalloc
 #endif // SSS_CALLOC
 
-#else // !PTMW_USE_RTOS
+#else // !USE_RTOS
 
 #include <stdlib.h>
 
@@ -81,6 +82,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for Heap3/Heap4.*/
 #define SSS_CALLOC calloc
 #endif // SSS_CALLOC
 
-#endif // PTMW_USE_RTOS
+#endif // USE_RTOS
 
 #endif /* FSL_SSS_TYPES_H */

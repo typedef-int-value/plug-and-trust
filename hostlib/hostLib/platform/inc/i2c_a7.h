@@ -112,7 +112,7 @@ i2c_error_t axI2CInit(void **conn_ctx, const char *pDevName);
  *
  */
 void axI2CTerm(void* conn_ctx, int mode);
-#define axI2CClose() axI2CTerm(0, 0)
+
 #if AX_EMBEDDED
 /** Smarter handling of back off logic
  *

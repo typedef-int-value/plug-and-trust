@@ -38,10 +38,6 @@ extern "C" {
 #include "tx_api.h"
 #endif
 
-#if (PTMW_USE_RTOS && PTMW_USE_RTOS == 1)
-#include "FreeRTOS.h"
-#include "semphr.h"
-#endif
 /*
     Disabled by default.
     Enable in case of multiple applications access platform SCP03 session
@@ -66,7 +62,7 @@ extern "C" {
     else                                   \
         LOG_D("LOCK Releasing failed");
 
-#elif (defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1))
+#elif (defined(USE_RTOS) && (USE_RTOS == 1))
 #define LOCK_TXN(lock)                                   \
     LOG_D("Trying to Acquire Lock");                     \
     if (xSemaphoreTake(lock, portMAX_DELAY) == pdTRUE) { \
@@ -99,8 +95,8 @@ extern "C" {
     LOG_D("LOCK Released by thread: %ld", pthread_self());
 #endif
 
-#if (__GNUC__ && !AX_EMBEDDED) || (PTMW_USE_RTOS) || defined(USE_THREADX_RTOS)
-#define USE_LOCK 0
+#if (__GNUC__ && !AX_EMBEDDED) || (USE_RTOS) || defined(USE_THREADX_RTOS)
+#define USE_LOCK 1
 #else
 #define USE_LOCK 0
 #endif
@@ -486,7 +482,7 @@ sss_status_t sss_se05x_session_open(sss_se05x_session_t *session,
 #ifdef SSS_USE_SCP03_THREAD_SAFETY /* Disabled by default. Enable in case of multiple applications access platform SCP03 session */
 #if SSS_HAVE_SCP_SCP03_SSS
     if (pAuthCtx->auth.authType == kSSS_AuthType_SCP03) {
-#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#if defined(USE_RTOS) && (USE_RTOS == 1)
         se05xSession->scp03_lock = xSemaphoreCreateMutex();
         if (se05xSession->scp03_lock == NULL) {
             LOG_E("xSemaphoreCreateMutex failed");
@@ -990,7 +986,7 @@ void sss_se05x_session_close(sss_se05x_session_t *session)
 
 #ifdef SSS_USE_SCP03_THREAD_SAFETY
 #if SSS_HAVE_SCP_SCP03_SSS
-#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#if defined(USE_RTOS) && (USE_RTOS == 1)
     if (session->s_ctx.scp03_lock_init) {
         LOG_D("scp03_lock pthread_mutex_destroy");
         vSemaphoreDelete(session->s_ctx.scp03_lock);
@@ -1004,7 +1000,7 @@ void sss_se05x_session_close(sss_se05x_session_t *session)
         }
         session->s_ctx.scp03_lock_init = 0;
     }
-#endif //#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#endif //#if defined(USE_RTOS) && (USE_RTOS == 1)
 #endif //#if SSS_HAVE_SCP_SCP03_SSS
 #endif //#ifdef SSS_USE_SCP03_THREAD_SAFETY
 
@@ -7724,7 +7720,7 @@ sss_status_t sss_se05x_tunnel_context_init(sss_se05x_tunnel_context_t *context, 
 {
     sss_status_t retval    = kStatus_SSS_Success;
     context->se05x_session = session;
-#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#if defined(USE_RTOS) && (USE_RTOS == 1)
     context->channelLock = xSemaphoreCreateMutex();
     if (context->channelLock == NULL) {
         LOG_E("xSemaphoreCreateMutex failed");
@@ -7761,7 +7757,7 @@ sss_status_t sss_se05x_tunnel(sss_se05x_tunnel_context_t *context,
 
 void sss_se05x_tunnel_context_free(sss_se05x_tunnel_context_t *context)
 {
-#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
+#if defined(USE_RTOS) && (USE_RTOS == 1)
     vSemaphoreDelete(context->channelLock);
 #elif (__GNUC__ && !AX_EMBEDDED)
     if (pthread_mutex_destroy(&context->channelLock) != 0) {

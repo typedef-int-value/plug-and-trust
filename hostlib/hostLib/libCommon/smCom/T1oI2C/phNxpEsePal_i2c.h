@@ -1,17 +1,7 @@
 /*
- * Copyright 2010-2014,2018-2019 NXP
+ * Copyright 2010-2014,2018-2020,2023-2024 NXP
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
  /**
@@ -22,22 +12,33 @@
 #define _PHNXPESE_PAL_I2C_H
 
 /* Basic type definitions */
-#include "phEseTypes.h"
+#include <phEseTypes.h>
 
 
 /*!
  * \brief ESE Poll timeout (min 1 miliseconds)
  */
 #define ESE_POLL_DELAY_MS (1)
+
 /*!
- * \brief ESE Poll timeout (max 2 seconds).
- * Increased to 500. Need more timeout for RSA operations. We get NACK before WTX
+ * \brief ESE Poll timeout.
+ * As Max WTX timeout is 1sec, select ESE_NAD_POLLING_MAX count in such a way that WTX request frm SE is not skiped.
+ * select target value is 2 sec.
+ *
+ * Note: Here ESE_NAD_POLLING_MAX is depend on platform, If i2c driver does not have backoff delay implemented,
+ * then set ESE_NAD_POLLING_MAX value to higher value.
+ *
  */
-#define ESE_NAD_POLLING_MAX (2*250)
+#if defined(QN9090DK6)
+  #define ESE_NAD_POLLING_MAX (2*30)
+#else
+  #define ESE_NAD_POLLING_MAX (30)  // With backoff delay implementation, this will have the read duration of ~20 seconds.
+#endif
+
 /*!
  * \brief Max retry count for Write
  */
-#define MAX_RETRY_COUNT   3
+#define MAX_RETRY_COUNT   8
 
 /*!
  * \brief ESE wakeup delay in case of write error retry
@@ -71,6 +72,10 @@ typedef struct phPalEse_Config
       * Platform specific canonical device name to which ESE is connected.
       *
       * e.g. On Linux based systems this would be /dev/p73
+      */
+
+    int8_t DeviceAddress;
+    /*!< I2C Address of SE connected
       */
 
     uint32_t dwBaudRate;
