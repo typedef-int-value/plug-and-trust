@@ -15,12 +15,12 @@ extern "C" {
 
 #include "sm_printf.h"
 
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
 #include "FreeRTOS.h"
 #include "semphr.h"
 #endif
 
-#if (__GNUC__ && !AX_EMBEDDED) || (USE_RTOS)
+#if (__GNUC__ && !AX_EMBEDDED) || (PTMW_USE_RTOS)
 #define USE_LOCK 1
 #else
 #define USE_LOCK 0
@@ -55,7 +55,7 @@ static void ansi_reSetColor(void);
 #if AX_EMBEDDED
 #define szEOL szCRLF
 #else
-#define szEOL szLF
+#define szEOL szCRLF
 #endif
 #endif /* __GNUC__ && !defined(__ARMCC_VERSION) */
 
@@ -105,7 +105,7 @@ static const char *szLevel[] = {"ERROR", "WARN ", "INFO ", "DEBUG"};
 #include "smCom.h"
 #endif
 
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
 static SemaphoreHandle_t gLogginglock;
 #elif (__GNUC__ && !AX_EMBEDDED)
 #include<pthread.h>
@@ -121,7 +121,7 @@ static void nLog_AcquireLock()
 {
 #if USE_LOCK
     if (lockInitialised) {
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
         if (xSemaphoreTake(gLogginglock, portMAX_DELAY) != pdTRUE) {
             PRINTF("Acquiring logging semaphore failed");
         }
@@ -138,7 +138,7 @@ static void nLog_ReleaseLock()
 {
 #if USE_LOCK
     if (lockInitialised) {
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
         if (xSemaphoreGive(gLogginglock) != pdTRUE) {
             PRINTF("Releasing logging semaphore failed");
         }
@@ -154,7 +154,7 @@ static void nLog_ReleaseLock()
 uint8_t nLog_Init(void)
 {
 #if USE_LOCK
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
     gLogginglock = xSemaphoreCreateMutex();
     if (gLogginglock == NULL) {
         PRINTF("xSemaphoreCreateMutex failed");
@@ -174,7 +174,7 @@ uint8_t nLog_Init(void)
 void nLog_DeInit(void)
 {
 #if USE_LOCK
-#if defined(USE_RTOS) && (USE_RTOS == 1)
+#if defined(PTMW_USE_RTOS) && (PTMW_USE_RTOS == 1)
     if (gLogginglock != NULL) {
     	vSemaphoreDelete(gLogginglock);
         gLogginglock = NULL;

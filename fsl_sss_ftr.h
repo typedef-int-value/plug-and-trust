@@ -42,7 +42,7 @@
 #define SSS_HAVE_APPLET_AUTH 0
 
 /** SE050E */
-#define SSS_HAVE_APPLET_SE050_E 1
+#define SSS_HAVE_APPLET_SE050_E 0
 
 /** NXP Internal testing Applet */
 #define SSS_HAVE_APPLET_LOOPBACK 0
@@ -79,7 +79,7 @@
 /** PTMW_SE05X_Ver : SE05X Applet version.
  *
  * Selection of Applet version 03_XX enables SE050 features.
- * Selection of Applet version 07_02 enables SE051 features.
+ * Selection of Applet version 07_02 enables SE051 / SE052 features.
  *
  */
 
@@ -637,8 +637,6 @@
 #        endif //SSS_HAVE_APPLET_SE051_H
 #    endif //SSS_HAVE_RSA
 #endif
-
-
 
 /* ========= Calculated values : END ======================== */
 
